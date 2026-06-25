@@ -120,7 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cerrar sesión
     document.getElementById('btnLogout').addEventListener('click', () => {
         if (confirm('¿Cerrar sesión?')) {
-            location.reload();
+            localStorage.removeItem('abgb_user_logged_in');
+            localStorage.removeItem('abgb_user_role');
+            window.location.href = 'login.html';
         }
     });
 

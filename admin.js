@@ -175,6 +175,80 @@ function renderReports() {
     }
 }
 
+// ==================== CIERRE DE CAJA ====================
+function renderCierreData() {
+    const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
+    
+    const totalVendido = history.reduce((sum, o) => sum + o.total, 0);
+    const taxes = Math.round(totalVendido * 0.13 / 1.13);
+    const totalOrders = history.length;
+    const avgTicket = totalOrders > 0 ? totalVendido / totalOrders : 0;
+
+    document.getElementById('cierreTotalVendido').textContent = formatPrice(totalVendido);
+    document.getElementById('cierreTaxes').textContent = formatPrice(taxes);
+    document.getElementById('cierreTotalOrders').textContent = totalOrders;
+    document.getElementById('cierreAvgTicket').textContent = formatPrice(avgTicket);
+
+    renderCierreHistory();
+}
+
+function renderCierreHistory() {
+    const closures = JSON.parse(localStorage.getItem('abgb_closures') || '[]');
+    const container = document.getElementById('cierreHistory');
+
+    if (closures.length === 0) {
+        container.innerHTML = '<div class="empty-state">Sin cierres realizados</div>';
+        return;
+    }
+
+    container.innerHTML = closures.reverse().map(closure => `
+        <div class="cierre-item">
+            <div class="cierre-date">${closure.date}</div>
+            <div class="cierre-details">
+                Total: ${formatPrice(closure.totalVendido)} | 
+                Órdenes: ${closure.totalOrders} | 
+                Ticket Promedio: ${formatPrice(closure.avgTicket)}
+            </div>
+        </div>
+    `).join('');
+}
+
+function closeCashRegister() {
+    const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
+    
+    if (history.length === 0) {
+        alert('No hay órdenes para cerrar');
+        return;
+    }
+
+    if (!confirm('¿Cerrar caja y limpiar historial? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    const totalVendido = history.reduce((sum, o) => sum + o.total, 0);
+    const totalOrders = history.length;
+    const avgTicket = totalOrders > 0 ? totalVendido / totalOrders : 0;
+
+    const closure = {
+        date: new Date().toLocaleString('es-CR'),
+        totalVendido: totalVendido,
+        totalOrders: totalOrders,
+        avgTicket: avgTicket
+    };
+
+    const closures = JSON.parse(localStorage.getItem('abgb_closures') || '[]');
+    closures.push(closure);
+    localStorage.setItem('abgb_closures', JSON.stringify(closures));
+
+    // Limpiar historial
+    localStorage.removeItem('abgb_history');
+
+    renderCierreData();
+    renderHistorial();
+    renderReports();
+    alert('Caja cerrada exitosamente');
+}
+
 // ==================== TABS ====================
 function setupTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -196,17 +270,20 @@ function setupTabs() {
                 renderHistorial();
             } else if (tabName === 'reportes') {
                 renderReports();
+            } else if (tabName === 'cierre') {
+                renderCierreData();
             }
         });
     });
 }
 
-// ==================== EXPORTAR ====================
+// ==================== CERRAR SESIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     renderAvailability();
     renderHistorial();
     renderReports();
+    renderCierreData();
     updateTime();
     setInterval(updateTime, 60000);
 
@@ -244,10 +321,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Botones de cierre de caja
+    if (document.getElementById('btnGenerateCierreReport')) {
+        document.getElementById('btnGenerateCierreReport').addEventListener('click', () => {
+            const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
+            let txt = 'REPORTE DE CIERRE DE CAJA\n';
+            txt += '========================\n';
+            txt += `Fecha: ${new Date().toLocaleString('es-CR')}\n\n`;
+            
+            const totalVendido = history.reduce((sum, o) => sum + o.total, 0);
+            const taxes = Math.round(totalVendido * 0.13 / 1.13);
+            const totalOrders = history.length;
+            const avgTicket = totalOrders > 0 ? totalVendido / totalOrders : 0;
+
+            txt += `Total Vendido: ${formatPrice(totalVendido)}\n`;
+            txt += `Impuestos (13%): ${formatPrice(taxes)}\n`;
+            txt += `Total Órdenes: ${totalOrders}\n`;
+            txt += `Ticket Promedio: ${formatPrice(avgTicket)}\n\n`;
+            txt += 'Detalle de Órdenes:\n';
+            txt += '---\n';
+            
+            history.forEach(o => {
+                txt += `Orden #${o.id} - Mesa #${o.table} - ${o.createdAt}\n`;
+                txt += `Total: ${formatPrice(o.total)}\n`;
+                txt += '---\n';
+            });
+
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cierre_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        });
+    }
+
+    if (document.getElementById('btnCloseCash')) {
+        document.getElementById('btnCloseCash').addEventListener('click', closeCashRegister);
+    }
+
     // Cerrar sesión
     document.getElementById('btnLogout').addEventListener('click', () => {
         if (confirm('¿Cerrar sesión?')) {
-            location.reload();
+            localStorage.removeItem('abgb_user_logged_in');
+            localStorage.removeItem('abgb_user_role');
+            window.location.href = 'login.html';
         }
     });
 

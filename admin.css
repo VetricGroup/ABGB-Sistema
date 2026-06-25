@@ -424,3 +424,106 @@ html, body {
         font-size: 11px;
     }
 }
+
+/* ==================== CIERRE DE CAJA ==================== */
+.cierre-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.cierre-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.summary-item {
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.summary-item label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.cierre-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    padding: 12px 20px;
+    background: var(--primary);
+    border: none;
+    color: var(--bg-dark);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-danger {
+    padding: 12px 20px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid var(--error);
+    color: var(--error);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.cierre-history {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cierre-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+}
+
+.cierre-date {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.cierre-details {
+    color: var(--text-secondary);
+    line-height: 1.4;
+}

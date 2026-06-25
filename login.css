@@ -1,0 +1,228 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #ffb800;
+    --primary-dark: #e6a500;
+    --bg-dark: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-surface-2: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border: #2a2a2a;
+    --error: #ef4444;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+/* ==================== LOGIN CONTAINER ==================== */
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #141414 100%);
+}
+
+.login-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+/* ==================== LOGO SECTION ==================== */
+.logo-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: var(--bg-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    border-radius: 8px;
+    margin: 0 auto 16px;
+}
+
+.logo-section h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.logo-section p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ==================== FORM ==================== */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.form-group select,
+.form-group input {
+    padding: 12px 14px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--bg-surface-2);
+}
+
+.form-group select option {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.btn-login {
+    padding: 12px;
+    background: var(--primary);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+/* ==================== DEMO CREDENTIALS ==================== */
+.demo-credentials {
+    background: rgba(255, 184, 0, 0.05);
+    border: 1px solid rgba(255, 184, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.demo-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.credential-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 184, 0, 0.1);
+}
+
+.credential-item:last-child {
+    border-bottom: none;
+}
+
+.credential-item .label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.credential-item .value {
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* ==================== ERROR MESSAGE ==================== */
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--error);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--error);
+    text-align: center;
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 480px) {
+    .login-box {
+        padding: 32px 24px;
+        max-width: 100%;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .logo-section h1 {
+        font-size: 18px;
+    }
+}

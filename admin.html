@@ -30,6 +30,7 @@
                 <button class="tab-btn active" data-tab="disponibilidad">Disponibilidad</button>
                 <button class="tab-btn" data-tab="historial">Historial</button>
                 <button class="tab-btn" data-tab="reportes">Reportes</button>
+                <button class="tab-btn" data-tab="cierre">Cierre de Caja</button>
             </div>
 
             <!-- TAB: DISPONIBILIDAD -->
@@ -88,6 +89,44 @@
                     <h3>Top 5 Productos Vendidos</h3>
                     <div class="top-products-list" id="topProductsList">
                         <!-- Top productos se cargan aquí -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CIERRE DE CAJA -->
+            <div class="tab-content" id="tab-cierre">
+                <div class="tab-header">
+                    <h2>Cierre de Caja</h2>
+                    <p>Resumen del día y cierre de operaciones</p>
+                </div>
+
+                <div class="cierre-container">
+                    <div class="cierre-summary">
+                        <div class="summary-item">
+                            <label>Total Vendido</label>
+                            <div class="summary-value" id="cierreTotalVendido">₡0</div>
+                        </div>
+                        <div class="summary-item">
+                            <label>Impuestos (13%)</label>
+                            <div class="summary-value" id="cierreTaxes">₡0</div>
+                        </div>
+                        <div class="summary-item">
+                            <label>Total Órdenes</label>
+                            <div class="summary-value" id="cierreTotalOrders">0</div>
+                        </div>
+                        <div class="summary-item">
+                            <label>Ticket Promedio</label>
+                            <div class="summary-value" id="cierreAvgTicket">₡0</div>
+                        </div>
+                    </div>
+
+                    <div class="cierre-actions">
+                        <button class="btn-primary" id="btnGenerateCierreReport">Generar Reporte</button>
+                        <button class="btn-danger" id="btnCloseCash">Cerrar Caja y Limpiar</button>
+                    </div>
+
+                    <div class="cierre-history" id="cierreHistory">
+                        <!-- Historial de cierres -->
                     </div>
                 </div>
             </div>

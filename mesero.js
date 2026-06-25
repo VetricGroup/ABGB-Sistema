@@ -263,6 +263,18 @@ function removeItem(productId) {
     saveState();
 }
 
+function cancelOrder() {
+    if (!state.selectedTable || Object.keys(state.cart).length === 0) return;
+    
+    if (confirm('¿Cancelar esta orden?')) {
+        state.cart = {};
+        state.selectedTable = null;
+        updateOrderUI();
+        document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
+        saveState();
+    }
+}
+
 function openSpecialInstructions(productId) {
     state.currentEditingItem = productId;
     const product = state.cart[productId];
@@ -461,6 +473,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botón confirmar
     document.getElementById('btnConfirm').addEventListener('click', confirmOrder);
 
+    // Botón cancelar
+    document.getElementById('btnCancel').addEventListener('click', cancelOrder);
+
     // Modal instrucciones
     document.getElementById('btnCloseModal').addEventListener('click', closeModal);
     document.getElementById('btnCancelModal').addEventListener('click', closeModal);
@@ -471,7 +486,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnLogout').addEventListener('click', () => {
         if (confirm('¿Cerrar sesión?')) {
             localStorage.removeItem('abgb_mesero_state');
-            location.reload();
+            localStorage.removeItem('abgb_user_logged_in');
+            localStorage.removeItem('abgb_user_role');
+            window.location.href = 'login.html';
         }
     });
 
