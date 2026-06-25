@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABGB - Sistema de Órdenes Chef</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="chef.css">
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">AB</div>
+                    <div>
+                        <h1>Cocina</h1>
+                        <span class="time" id="time">09:30</span>
+                    </div>
+                </div>
+                <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="main">
+            <!-- STATUS BAR -->
+            <div class="status-bar">
+                <div class="status-item nuevo">
+                    <div class="status-count" id="countNuevo">0</div>
+                    <div class="status-label">Nuevas</div>
+                </div>
+                <div class="status-item preparando">
+                    <div class="status-count" id="countPreparando">0</div>
+                    <div class="status-label">Preparando</div>
+                </div>
+                <div class="status-item listo">
+                    <div class="status-count" id="countListo">0</div>
+                    <div class="status-label">Listas</div>
+                </div>
+            </div>
+
+            <!-- ORDERS CONTAINER -->
+            <div class="orders-container">
+                <div class="orders-grid" id="ordersGrid">
+                    <!-- Las órdenes se cargan aquí -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="chef.js"></script>
+</body>
+</html>

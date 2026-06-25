@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABGB - Sistema Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">AB</div>
+                    <div>
+                        <h1>Administración</h1>
+                        <span class="time" id="time">09:30</span>
+                    </div>
+                </div>
+                <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="main">
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="disponibilidad">Disponibilidad</button>
+                <button class="tab-btn" data-tab="historial">Historial</button>
+                <button class="tab-btn" data-tab="reportes">Reportes</button>
+            </div>
+
+            <!-- TAB: DISPONIBILIDAD -->
+            <div class="tab-content active" id="tab-disponibilidad">
+                <div class="tab-header">
+                    <h2>Disponibilidad de Productos</h2>
+                    <p>Marca los productos que NO están disponibles</p>
+                </div>
+                
+                <div class="products-availability" id="availabilityGrid">
+                    <!-- Los productos se cargan aquí -->
+                </div>
+            </div>
+
+            <!-- TAB: HISTORIAL -->
+            <div class="tab-content" id="tab-historial">
+                <div class="tab-header">
+                    <h2>Historial de Órdenes</h2>
+                    <div class="controls">
+                        <button class="btn-action" id="btnExport">Exportar</button>
+                        <button class="btn-action danger" id="btnClear">Limpiar</button>
+                    </div>
+                </div>
+
+                <div class="history-list" id="historyList">
+                    <!-- El historial se carga aquí -->
+                </div>
+            </div>
+
+            <!-- TAB: REPORTES -->
+            <div class="tab-content" id="tab-reportes">
+                <div class="tab-header">
+                    <h2>Reportes del Día</h2>
+                </div>
+
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <div class="report-label">Total de Órdenes</div>
+                        <div class="report-value" id="totalOrders">0</div>
+                    </div>
+                    <div class="report-card">
+                        <div class="report-label">Ingresos Totales</div>
+                        <div class="report-value" id="totalRevenue">₡0</div>
+                    </div>
+                    <div class="report-card">
+                        <div class="report-label">Ticket Promedio</div>
+                        <div class="report-value" id="avgTicket">₡0</div>
+                    </div>
+                    <div class="report-card">
+                        <div class="report-label">Mesa Más Activa</div>
+                        <div class="report-value" id="mostActiveTable">-</div>
+                    </div>
+                </div>
+
+                <div class="top-products">
+                    <h3>Top 5 Productos Vendidos</h3>
+                    <div class="top-products-list" id="topProductsList">
+                        <!-- Top productos se cargan aquí -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #ffb800;
+    --primary-dark: #e6a500;
+    --bg-dark: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-surface-2: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border: #2a2a2a;
+    --success: #22c55e;
+    --warning: #eab308;
+    --error: #ef4444;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+/* ==================== APP ==================== */
+.app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+}
+
+/* ==================== HEADER ==================== */
+.header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    flex-shrink: 0;
+}
+
+.header-content {
+    max-width: 1800px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: var(--bg-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.header-left h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.btn-logout {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+/* ==================== MAIN ==================== */
+.main {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 24px;
+}
+
+/* ==================== STATUS BAR ==================== */
+.status-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.status-item {
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-left: 4px solid;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-item.nuevo {
+    border-left-color: var(--error);
+}
+
+.status-item.preparando {
+    border-left-color: var(--warning);
+}
+
+.status-item.listo {
+    border-left-color: var(--success);
+}
+
+.status-count {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.status-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ==================== ORDERS CONTAINER ==================== */
+.orders-container {
+    flex: 1;
+    overflow: hidden;
+}
+
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    overflow-y: auto;
+    height: 100%;
+    padding-right: 4px;
+}
+
+/* ==================== ORDER CARD ==================== */
+.order-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+}
+
+.order-card.nuevo {
+    border-color: var(--error);
+    background: rgba(239, 68, 68, 0.03);
+}
+
+.order-card.preparando {
+    border-color: var(--warning);
+    background: rgba(234, 179, 8, 0.03);
+}
+
+.order-card.listo {
+    border-color: var(--success);
+    background: rgba(34, 197, 94, 0.03);
+}
+
+.order-header {
+    background: var(--bg-surface-2);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.order-info {
+    flex: 1;
+    text-align: left;
+}
+
+.order-id {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.order-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.order-badge {
+    padding: 4px 10px;
+    background: var(--primary);
+    color: var(--bg-dark);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.order-body {
+    padding: 12px 16px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px;
+    background: var(--bg-surface-2);
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.item-name {
+    font-weight: 600;
+    flex: 1;
+}
+
+.item-qty {
+    color: var(--primary);
+    font-weight: 700;
+    min-width: 24px;
+    text-align: right;
+}
+
+.item-special {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
+}
+
+.order-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action.primary {
+    background: var(--primary);
+    color: var(--bg-dark);
+}
+
+.btn-action.primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-action.secondary {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.btn-action.secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-action.danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+}
+
+.btn-action.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1200px) {
+    .orders-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .status-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+}
