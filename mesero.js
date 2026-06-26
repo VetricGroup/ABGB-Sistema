@@ -3,81 +3,82 @@ let state = {
     selectedTable: null,
     cart: {},
     currentEditingItem: null,
+    firebaseOrdersTracking: {} // Para saber qué órdenes ya notificamos
 };
 
+// ==================== ESCUCHAR FIREBASE PARA NOTIFICACIONES ====================
+function setupFirebaseNotifications() {
+    if (!window.firebaseDB) {
+        console.log('Firebase no disponible para notificaciones');
+        return;
+    }
 
-// ==================== SISTEMA DE NOTIFICACIONES ====================
-let lastCheckedOrders = [];
-
-function checkForReadyOrders() {
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+    console.log('🔗 Mesero escuchando notificaciones de Firebase...');
     
-    orders.forEach(order => {
-        const wasChecked = lastCheckedOrders.find(o => o.id === order.id);
+    // Escuchar cambios en órdenes
+    window.firebaseDB.ref('orders').on('child_changed', (snapshot) => {
+        const order = snapshot.val();
         
-        // Si la orden pasó a "entregado" y no la habíamos visto así
-        if (order.status === 'entregado' && (!wasChecked || wasChecked.status !== 'entregado')) {
-            showNotification(`Orden #${order.id} - Mesa #${order.table} lista para recoger`);
-            playNotificationSound();
+        if (order && order.status === 'listo') {
+            // Verificar si ya notificamos esta orden
+            if (!state.firebaseOrdersTracking[order.id] || state.firebaseOrdersTracking[order.id] !== 'listo') {
+                // Marcar como notificada
+                state.firebaseOrdersTracking[order.id] = 'listo';
+                
+                // Mostrar notificación al mesero
+                console.log(' ¡Orden lista para entregar!', order.id);
+                showOrderReadyNotification(order);
+            }
         }
     });
-    
-    lastCheckedOrders = JSON.parse(JSON.stringify(orders));
 }
 
-function showNotification(message) {
-    // Notificación visual en la página
-    const notification = document.createElement('div');
-    notification.className = 'notification-toast';
-    notification.innerHTML = `
-        <div class="notification-content">
-            <div class="notification-icon">✓</div>
-            <div class="notification-message">${message}</div>
-        </div>
-    `;
+function showOrderReadyNotification(order) {
+    // Notificación visual hermosa
+    NotificationManager.success(
+        ` ¡Mesa #${order.table} - Orden #${order.id.toString().slice(-4)} LISTA PARA ENTREGAR!`,
+        5000
+    );
+
+    // Sonido de notificación
+    playNotificationSound();
     
-    document.body.appendChild(notification);
-    
-    // Animar entrada
-    setTimeout(() => notification.classList.add('show'), 10);
-    
-    // Remover después de 5 segundos
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 5000);
-    
-    // También intentar notificación del navegador
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('ABGB - Orden Lista', {
-            body: message,
-            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23ffb800" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" text-anchor="middle" fill="%230a0a0a">AB</text></svg>'
-        });
+    // Vibración en el dispositivo
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
     }
 }
 
 function playNotificationSound() {
     try {
+        // Crear un sonido simple usando Web Audio API
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Sonido de 3 beeps
-        const beep = (frequency, duration) => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.frequency.value = frequency;
-            gain.gain.setValueAtTime(0.5, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            osc.start(audioContext.currentTime);
-            osc.stop(audioContext.currentTime + duration);
-        };
-        
         const now = audioContext.currentTime;
-        beep(800, 0.15); // Beep 1
-        setTimeout(() => beep(900, 0.15), 150); // Beep 2
-        setTimeout(() => beep(1000, 0.2), 300); // Beep 3
-    } catch (e) {}
+        
+        // Notas musicales: Do, Mi, Sol (acorde alegre)
+        const notes = [261.63, 329.63, 392.00]; // Frecuencias en Hz
+        
+        notes.forEach((frequency, index) => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            // Fade in y out
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+            
+            oscillator.start(now + index * 0.05);
+            oscillator.stop(now + 0.5);
+        });
+    } catch (error) {
+        console.log('No se puede reproducir sonido:', error);
+    }
 }
 
 // ==================== DATOS DE MENÚ ====================
@@ -459,18 +460,24 @@ function completeOrderProcess(order) {
 
 // ==================== EVENT LISTENERS ====================
 document.addEventListener('DOMContentLoaded', () => {
-    checkForReadyOrders();
-    setInterval(checkForReadyOrders, 1000); // Verificar cada segundo
-
-    // Pedir permiso para notificaciones del navegador
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-
     loadState();
     renderProducts('all');
     updateTime();
     setInterval(updateTime, 60000);
+    
+    // Esperar a Firebase y configurar notificaciones en tiempo real
+    let fbAttempts = 0;
+    const fbCheck = setInterval(() => {
+        fbAttempts++;
+        if (window.firebaseDB) {
+            clearInterval(fbCheck);
+            console.log('✅ Firebase listo - Activando notificaciones en tiempo real');
+            setupFirebaseNotifications();
+        } else if (fbAttempts > 10) {
+            clearInterval(fbCheck);
+            console.warn('⚠️ Firebase no disponible para notificaciones');
+        }
+    }, 100);
 
     // Filtros
     document.querySelectorAll('.filter-btn').forEach(btn => {
