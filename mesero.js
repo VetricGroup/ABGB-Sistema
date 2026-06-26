@@ -3,17 +3,17 @@ let state = {
     selectedTable: null,
     cart: {},
     currentEditingItem: null,
-    firebaseOrdersTracking: {} // Para saber qué órdenes ya notificamos
+    firebaseOrdersTracking: {}
 };
 
-// ==================== ESCUCHAR FIREBASE PARA NOTIFICACIONES ====================
+// ==================== FIREBASE NOTIFICACIONES EN TIEMPO REAL ====================
 function setupFirebaseNotifications() {
     if (!window.firebaseDB) {
         console.log('Firebase no disponible para notificaciones');
         return;
     }
 
-    console.log('🔗 Mesero escuchando notificaciones de Firebase...');
+    console.log('Escuchando cambios en Firebase...');
     
     // Escuchar cambios en órdenes
     window.firebaseDB.ref('orders').on('child_changed', (snapshot) => {
@@ -26,22 +26,22 @@ function setupFirebaseNotifications() {
                 state.firebaseOrdersTracking[order.id] = 'listo';
                 
                 // Mostrar notificación al mesero
-                console.log(' ¡Orden lista para entregar!', order.id);
-                showOrderReadyNotification(order);
+                console.log('Orden lista para entregar:', order.id);
+                mostrarNotificacionOrdenLista(order);
             }
         }
     });
 }
 
-function showOrderReadyNotification(order) {
-    // Notificación visual hermosa
+function mostrarNotificacionOrdenLista(order) {
+    // Notificación visual profesional
     NotificationManager.success(
-        ` ¡Mesa #${order.table} - Orden #${order.id.toString().slice(-4)} LISTA PARA ENTREGAR!`,
+        `Mesa ${order.table} - Orden ${order.id.toString().slice(-4)} lista para entregar`,
         5000
     );
 
-    // Sonido de notificación
-    playNotificationSound();
+    // Sonido de notificación elegante y suave
+    reproducirSonidoNotificacion();
     
     // Vibración en el dispositivo
     if (navigator.vibrate) {
@@ -49,33 +49,50 @@ function showOrderReadyNotification(order) {
     }
 }
 
-function playNotificationSound() {
+function reproducirSonidoNotificacion() {
     try {
-        // Crear un sonido simple usando Web Audio API
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const now = audioContext.currentTime;
+        const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+        const ahora = contextoAudio.currentTime;
         
-        // Notas musicales: Do, Mi, Sol (acorde alegre)
-        const notes = [261.63, 329.63, 392.00]; // Frecuencias en Hz
+        // Sonido elegante y suave - tipo "chime" de lujo
+        const frecuenciaPrincipal = 440; // La 4 - suave y agradable
+        const duracion = 1.2; // Más larga para efecto más elegante
         
-        notes.forEach((frequency, index) => {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'sine';
-            
-            // Fade in y out
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
-            gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
-            
-            oscillator.start(now + index * 0.05);
-            oscillator.stop(now + 0.5);
-        });
+        // Oscilador principal
+        const oscilador = contextoAudio.createOscillator();
+        const ganancia = contextoAudio.createGain();
+        
+        oscilador.connect(ganancia);
+        ganancia.connect(contextoAudio.destination);
+        
+        oscilador.frequency.value = frecuenciaPrincipal;
+        oscilador.type = 'sine';
+        
+        // Envelope muy suave (tipo campana de lujo)
+        ganancia.gain.setValueAtTime(0, ahora);
+        ganancia.gain.linearRampToValueAtTime(0.4, ahora + 0.08); // Attack suave
+        ganancia.gain.exponentialRampToValueAtTime(0.001, ahora + duracion); // Decay largo y suave
+        
+        oscilador.start(ahora);
+        oscilador.stop(ahora + duracion);
+        
+        // Armónico complementario más suave
+        const oscilador2 = contextoAudio.createOscillator();
+        const ganancia2 = contextoAudio.createGain();
+        
+        oscilador2.connect(ganancia2);
+        ganancia2.connect(contextoAudio.destination);
+        
+        oscilador2.frequency.value = 550; // Frecuencia complementaria suave
+        oscilador2.type = 'sine';
+        
+        ganancia2.gain.setValueAtTime(0, ahora + 0.15);
+        ganancia2.gain.linearRampToValueAtTime(0.2, ahora + 0.25);
+        ganancia2.gain.exponentialRampToValueAtTime(0.001, ahora + 1.0);
+        
+        oscilador2.start(ahora + 0.15);
+        oscilador2.stop(ahora + 1.0);
+        
     } catch (error) {
         console.log('No se puede reproducir sonido:', error);
     }
@@ -120,7 +137,7 @@ const MENU = {
     bebidas: [
         { id: 301, name: 'Gaseosa', desc: 'Soda', price: 1000 },
         { id: 302, name: 'Gaseosa Lata', desc: 'Canned soda', price: 1500 },
-        { id: 303, name: 'Té Frío', desc: 'Iced tea', price: 1500 },
+        { id: 303, name: 'Te Frio', desc: 'Iced tea', price: 1500 },
         { id: 304, name: 'Smoothie', desc: 'Fresh smoothie', price: 2000 },
         { id: 305, name: 'Natural', desc: 'Fresh juice', price: 1000 },
         { id: 306, name: 'Botella de Agua', desc: 'Water bottle', price: 1000 },
@@ -160,7 +177,6 @@ function saveState() {
         cart: state.cart,
         selectedTable: state.selectedTable
     }));
-    // Notificar a chef y admin
     broadcastUpdate('MESERO_STATE_CHANGED');
 }
 
@@ -171,7 +187,7 @@ function broadcastUpdate(eventType) {
     window.dispatchEvent(event);
 }
 
-// ==================== PRODUCTOS ==================== 
+// ==================== PRODUCTOS ====================
 function getAvailableProducts() {
     const availability = JSON.parse(localStorage.getItem('abgb_availability') || '{}');
     return availability;
@@ -208,7 +224,7 @@ function renderProducts(category = 'all') {
                 <div class="product-desc">${product.desc}</div>
                 <div class="product-footer">
                     <span class="product-price">${formatPrice(product.price)}</span>
-                    ${!isUnavailable ? '<button class="btn-add">+</button>' : '<button class="btn-add" disabled>×</button>'}
+                    ${!isUnavailable ? '<button class="btn-add">+</button>' : '<button class="btn-add" disabled>x</button>'}
                 </div>
             </div>
         `;
@@ -267,7 +283,7 @@ function removeItem(productId) {
 function cancelOrder() {
     if (!state.selectedTable || Object.keys(state.cart).length === 0) return;
     
-    if (confirm('¿Cancelar esta orden?')) {
+    if (confirm('Cancelar esta orden?')) {
         state.cart = {};
         state.selectedTable = null;
         updateOrderUI();
@@ -344,7 +360,7 @@ function updateOrderUI() {
                             <button class="qty-btn" onclick="changeQty(${productId}, 1)">+</button>
                         </div>
                         <button class="btn-notes" onclick="openSpecialInstructions(${productId})" title="Instrucciones especiales">≡</button>
-                        <button class="btn-remove" onclick="removeItem(${productId})">✕</button>
+                        <button class="btn-remove" onclick="removeItem(${productId})">x</button>
                     </div>
                 </div>
             `;
@@ -411,20 +427,20 @@ function confirmOrder() {
         createdDate: new Date().toLocaleDateString('es-CR'),
     };
 
-    // GUARDAR EN FIREBASE SOLAMENTE
+    // Guardar en Firebase
     if (window.firebaseDB) {
-        console.log('💾 Guardando orden en Firebase:', order.id);
+        console.log('Guardando orden en Firebase:', order.id);
         window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
-            console.log('✅ Orden guardada en Firebase');
+            console.log('Orden guardada correctamente');
             // Limpiar carrito
             state.cart = {};
             state.selectedTable = null;
             updateOrderUI();
             document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
             saveState();
-            NotificationManager.success('Orden #' + order.id + ' confirmada');
+            NotificationManager.success('Orden ' + order.id + ' confirmada');
         }).catch((error) => {
-            console.error('❌ Error guardando en Firebase:', error);
+            console.error('Error guardando orden:', error);
             NotificationManager.error('Error: ' + error.message);
         });
     } else {
@@ -433,19 +449,16 @@ function confirmOrder() {
 }
 
 function saveOrderLocally(order) {
-    // Guardar en localStorage
     const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
     orders.unshift(order);
     localStorage.setItem('abgb_orders', JSON.stringify(orders));
 
-    // Guardar en historial
     const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
     history.push(order);
     localStorage.setItem('abgb_history', JSON.stringify(history));
 }
 
 function completeOrderProcess(order) {
-    // Limpiar carrito
     state.cart = {};
     state.selectedTable = null;
     
@@ -455,7 +468,7 @@ function completeOrderProcess(order) {
     saveState();
     broadcastUpdate('NEW_ORDER');
 
-    NotificationManager.success('Orden #' + order.id + ' confirmada');
+    NotificationManager.success('Orden ' + order.id + ' confirmada');
 }
 
 // ==================== EVENT LISTENERS ====================
@@ -471,11 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fbAttempts++;
         if (window.firebaseDB) {
             clearInterval(fbCheck);
-            console.log('✅ Firebase listo - Activando notificaciones en tiempo real');
+            console.log('Firebase listo - Notificaciones activadas');
             setupFirebaseNotifications();
         } else if (fbAttempts > 10) {
             clearInterval(fbCheck);
-            console.warn('⚠️ Firebase no disponible para notificaciones');
+            console.log('Firebase no disponible para notificaciones');
         }
     }, 100);
 
@@ -515,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cerrar sesión
     document.getElementById('btnLogout').addEventListener('click', () => {
-        if (confirm('¿Cerrar sesión?')) {
+        if (confirm('Cerrar sesión?')) {
             localStorage.removeItem('abgb_mesero_state');
             localStorage.removeItem('abgb_user_logged_in');
             localStorage.removeItem('abgb_user_role');
