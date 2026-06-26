@@ -119,8 +119,8 @@ function removeOrder(orderId) {
 }
 
 function renderOrders() {
-    const orders = loadOrders();
     const grid = document.getElementById('ordersGrid');
+    const orders = state.orders;
 
     if (orders.length === 0) {
         grid.innerHTML = '<div class="empty-state">Sin órdenes activas</div>';
