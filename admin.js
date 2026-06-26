@@ -176,6 +176,25 @@ function renderReports() {
 }
 
 // ==================== CIERRE DE CAJA ====================
+function setupFirebaseHistoryListener() {
+    if (!window.firebaseDB) return;
+
+    // Escuchar cambios en órdenes
+    window.firebaseDB.ref('orders').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const orders = Object.values(data);
+            // Guardar en localStorage como backup
+            localStorage.setItem('abgb_orders', JSON.stringify(orders));
+            // Actualizar UI
+            renderHistorial();
+            renderReports();
+            renderCierreData();
+        }
+    });
+}
+
+// ==================== CIERRE DE CAJA ====================
 function renderCierreData() {
     const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
     
@@ -279,6 +298,22 @@ function setupTabs() {
 
 // ==================== CERRAR SESIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar Firebase listener
+    let firebaseReady = false;
+    let attempts = 0;
+    
+    const checkFirebase = setInterval(() => {
+        attempts++;
+        if (window.firebaseDB) {
+            clearInterval(checkFirebase);
+            setupFirebaseHistoryListener();
+            firebaseReady = true;
+        } else if (attempts > 10) {
+            clearInterval(checkFirebase);
+            console.log('Usando localStorage como fallback');
+        }
+    }, 200);
+
     setupTabs();
     renderAvailability();
     renderHistorial();

@@ -380,7 +380,6 @@ function selectTable(tableNum) {
     saveState();
 }
 
-// ==================== CONFIRMAR ORDEN ====================
 function confirmOrder() {
     if (!state.selectedTable || Object.keys(state.cart).length === 0) return;
 
@@ -408,29 +407,39 @@ function confirmOrder() {
         total: subtotal + Math.round(subtotal * 0.13),
         status: 'nuevo',
         createdAt: new Date().toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' }),
+        createdDate: new Date().toLocaleDateString('es-CR'),
     };
 
-    // Guardar orden
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-    orders.unshift(order);
-    localStorage.setItem('abgb_orders', JSON.stringify(orders));
+    // Guardar en Firebase
+    if (window.firebaseDB) {
+        window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
+            // Guardar también en localStorage como backup
+            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+            orders.unshift(order);
+            localStorage.setItem('abgb_orders', JSON.stringify(orders));
 
-    // Guardar historial
-    const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
-    history.push(order);
-    localStorage.setItem('abgb_history', JSON.stringify(history));
+            // Guardar en historial
+            const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
+            history.push(order);
+            localStorage.setItem('abgb_history', JSON.stringify(history));
 
-    // Limpiar carrito
-    state.cart = {};
-    state.selectedTable = null;
-    
-    updateOrderUI();
-    document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
-    
-    saveState();
-    broadcastUpdate('NEW_ORDER');
+            // Limpiar carrito
+            state.cart = {};
+            state.selectedTable = null;
+            
+            updateOrderUI();
+            document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
+            
+            saveState();
+            broadcastUpdate('NEW_ORDER');
 
-    alert('Orden #' + order.id + ' confirmada');
+            alert('Orden #' + order.id + ' confirmada');
+        }).catch((error) => {
+            alert('Error al guardar orden: ' + error.message);
+        });
+    } else {
+        alert('Firebase no está disponible. Verifica la conexión.');
+    }
 }
 
 // ==================== EVENT LISTENERS ====================

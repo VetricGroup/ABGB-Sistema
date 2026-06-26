@@ -3,6 +3,33 @@ let state = {
     orders: []
 };
 
+// ==================== FIREBASE LISTENER ====================
+function setupFirebaseListener() {
+    if (!window.firebaseDB) {
+        console.error('Firebase no está inicializado');
+        return;
+    }
+
+    // Escuchar cambios en ordenes en tiempo real
+    window.firebaseDB.ref('orders').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const orders = [];
+
+        if (data) {
+            Object.values(data).forEach(order => {
+                if (order.status !== 'entregado') {
+                    orders.push(order);
+                }
+            });
+        }
+
+        // Ordenar por fecha descendente
+        orders.sort((a, b) => b.id - a.id);
+        state.orders = orders;
+        renderOrders();
+    });
+}
+
 // ==================== UTILIDADES ====================
 function updateTime() {
     const now = new Date();
@@ -17,21 +44,30 @@ function loadOrders() {
 }
 
 function updateStatus(orderId, newStatus) {
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-    const order = orders.find(o => o.id === orderId);
-    
-    if (order) {
-        order.status = newStatus;
-        localStorage.setItem('abgb_orders', JSON.stringify(orders));
-        renderOrders();
+    if (window.firebaseDB) {
+        window.firebaseDB.ref('orders/' + orderId + '/status').set(newStatus).then(() => {
+            // También actualizar en localStorage
+            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                localStorage.setItem('abgb_orders', JSON.stringify(orders));
+            }
+            renderOrders();
+        });
     }
 }
 
 function removeOrder(orderId) {
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-    const filtered = orders.filter(o => o.id !== orderId);
-    localStorage.setItem('abgb_orders', JSON.stringify(filtered));
-    renderOrders();
+    if (window.firebaseDB) {
+        window.firebaseDB.ref('orders/' + orderId).remove().then(() => {
+            // También remover de localStorage
+            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+            const filtered = orders.filter(o => o.id !== orderId);
+            localStorage.setItem('abgb_orders', JSON.stringify(filtered));
+            renderOrders();
+        });
+    }
 }
 
 function renderOrders() {
@@ -112,6 +148,25 @@ function updateStatusCounts() {
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
+    // Esperar a que Firebase esté listo
+    let firebaseReady = false;
+    let attempts = 0;
+    
+    const checkFirebase = setInterval(() => {
+        attempts++;
+        if (window.firebaseDB) {
+            clearInterval(checkFirebase);
+            setupFirebaseListener();
+            firebaseReady = true;
+        } else if (attempts > 10) {
+            clearInterval(checkFirebase);
+            console.error('Firebase no se inicializó');
+            // Usar localStorage como fallback
+            loadOrders();
+            renderOrders();
+        }
+    }, 200);
+
     loadOrders();
     renderOrders();
     updateTime();
