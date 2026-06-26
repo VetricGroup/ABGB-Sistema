@@ -6,28 +6,52 @@ let state = {
 // ==================== FIREBASE LISTENER ====================
 function setupFirebaseListener() {
     if (!window.firebaseDB) {
-        console.error('Firebase no está inicializado');
+        console.warn('Firebase no está disponible, usando localStorage');
+        // Usar localStorage como fallback
+        loadOrdersFromLocalStorage();
+        // Polling cada 2 segundos
+        setInterval(loadOrdersFromLocalStorage, 2000);
         return;
     }
 
-    // Escuchar cambios en ordenes en tiempo real
-    window.firebaseDB.ref('orders').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const orders = [];
+    try {
+        // Escuchar cambios en ordenes en tiempo real
+        window.firebaseDB.ref('orders').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const orders = [];
 
-        if (data) {
-            Object.values(data).forEach(order => {
-                if (order.status !== 'entregado') {
-                    orders.push(order);
-                }
-            });
-        }
+            if (data) {
+                Object.values(data).forEach(order => {
+                    if (order.status !== 'entregado') {
+                        orders.push(order);
+                    }
+                });
+            }
 
-        // Ordenar por fecha descendente
-        orders.sort((a, b) => b.id - a.id);
-        state.orders = orders;
-        renderOrders();
-    });
+            // Ordenar por fecha descendente
+            orders.sort((a, b) => b.id - a.id);
+            state.orders = orders;
+            renderOrders();
+        });
+    } catch (error) {
+        console.warn('Error con Firebase listener, usando localStorage:', error);
+        loadOrdersFromLocalStorage();
+        setInterval(loadOrdersFromLocalStorage, 2000);
+    }
+}
+
+// ==================== CARGAR DE LOCALSTORAGE ====================
+function loadOrdersFromLocalStorage() {
+    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+    
+    // Filtrar órdenes no entregadas
+    const activeOrders = orders.filter(o => o.status !== 'entregado');
+    
+    // Ordenar por fecha descendente
+    activeOrders.sort((a, b) => b.id - a.id);
+    
+    state.orders = activeOrders;
+    renderOrders();
 }
 
 // ==================== UTILIDADES ====================
@@ -35,12 +59,6 @@ function updateTime() {
     const now = new Date();
     const time = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('time').textContent = time;
-}
-
-function loadOrders() {
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-    state.orders = orders.filter(o => o.status !== 'entregado');
-    return state.orders;
 }
 
 function updateStatus(orderId, newStatus) {
@@ -53,8 +71,26 @@ function updateStatus(orderId, newStatus) {
                 order.status = newStatus;
                 localStorage.setItem('abgb_orders', JSON.stringify(orders));
             }
-            renderOrders();
+            loadOrdersFromLocalStorage();
+        }).catch(() => {
+            // Si Firebase falla, usar localStorage
+            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                localStorage.setItem('abgb_orders', JSON.stringify(orders));
+            }
+            loadOrdersFromLocalStorage();
         });
+    } else {
+        // Sin Firebase, usar localStorage directamente
+        const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            order.status = newStatus;
+            localStorage.setItem('abgb_orders', JSON.stringify(orders));
+        }
+        loadOrdersFromLocalStorage();
     }
 }
 
@@ -65,8 +101,20 @@ function removeOrder(orderId) {
             const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
             const filtered = orders.filter(o => o.id !== orderId);
             localStorage.setItem('abgb_orders', JSON.stringify(filtered));
-            renderOrders();
+            loadOrdersFromLocalStorage();
+        }).catch(() => {
+            // Si Firebase falla, usar localStorage
+            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+            const filtered = orders.filter(o => o.id !== orderId);
+            localStorage.setItem('abgb_orders', JSON.stringify(filtered));
+            loadOrdersFromLocalStorage();
         });
+    } else {
+        // Sin Firebase, usar localStorage directamente
+        const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+        const filtered = orders.filter(o => o.id !== orderId);
+        localStorage.setItem('abgb_orders', JSON.stringify(filtered));
+        loadOrdersFromLocalStorage();
     }
 }
 
@@ -148,7 +196,7 @@ function updateStatusCounts() {
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que Firebase esté listo
+    // Esperar a que Firebase esté listo (con timeout)
     let firebaseReady = false;
     let attempts = 0;
     
@@ -158,16 +206,15 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(checkFirebase);
             setupFirebaseListener();
             firebaseReady = true;
-        } else if (attempts > 10) {
+        } else if (attempts > 5) {
+            // Después de 1 segundo, usar localStorage como fallback
             clearInterval(checkFirebase);
-            console.error('Firebase no se inicializó');
-            // Usar localStorage como fallback
-            loadOrders();
-            renderOrders();
+            console.warn('Firebase no se inicializó, usando localStorage');
+            loadOrdersFromLocalStorage();
         }
     }, 200);
 
-    loadOrders();
+    loadOrdersFromLocalStorage();
     renderOrders();
     updateTime();
     setInterval(updateTime, 60000);
@@ -181,13 +228,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Sincronización: detectar nuevos pedidos
+    // Sincronización: detectar cambios en localStorage desde otro dispositivo
     window.addEventListener('storage', () => {
-        renderOrders();
+        loadOrdersFromLocalStorage();
     });
 
     // Polling cada 2 segundos para detectar cambios
     setInterval(() => {
-        renderOrders();
+        loadOrdersFromLocalStorage();
     }, 2000);
 });

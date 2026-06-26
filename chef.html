@@ -1,240 +1,59 @@
-// ==================== ESTADO ====================
-let state = {
-    orders: []
-};
-
-// ==================== FIREBASE LISTENER ====================
-function setupFirebaseListener() {
-    if (!window.firebaseDB) {
-        console.warn('Firebase no está disponible, usando localStorage');
-        // Usar localStorage como fallback
-        loadOrdersFromLocalStorage();
-        // Polling cada 2 segundos
-        setInterval(loadOrdersFromLocalStorage, 2000);
-        return;
-    }
-
-    try {
-        // Escuchar cambios en ordenes en tiempo real
-        window.firebaseDB.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const orders = [];
-
-            if (data) {
-                Object.values(data).forEach(order => {
-                    if (order.status !== 'entregado') {
-                        orders.push(order);
-                    }
-                });
-            }
-
-            // Ordenar por fecha descendente
-            orders.sort((a, b) => b.id - a.id);
-            state.orders = orders;
-            renderOrders();
-        });
-    } catch (error) {
-        console.warn('Error con Firebase listener, usando localStorage:', error);
-        loadOrdersFromLocalStorage();
-        setInterval(loadOrdersFromLocalStorage, 2000);
-    }
-}
-
-// ==================== CARGAR DE LOCALSTORAGE ====================
-function loadOrdersFromLocalStorage() {
-    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-    
-    // Filtrar órdenes no entregadas
-    const activeOrders = orders.filter(o => o.status !== 'entregado');
-    
-    // Ordenar por fecha descendente
-    activeOrders.sort((a, b) => b.id - a.id);
-    
-    state.orders = activeOrders;
-    renderOrders();
-}
-
-// ==================== UTILIDADES ====================
-function updateTime() {
-    const now = new Date();
-    const time = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('time').textContent = time;
-}
-
-function updateStatus(orderId, newStatus) {
-    if (window.firebaseDB) {
-        window.firebaseDB.ref('orders/' + orderId + '/status').set(newStatus).then(() => {
-            // También actualizar en localStorage
-            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-            const order = orders.find(o => o.id === orderId);
-            if (order) {
-                order.status = newStatus;
-                localStorage.setItem('abgb_orders', JSON.stringify(orders));
-            }
-            loadOrdersFromLocalStorage();
-        }).catch(() => {
-            // Si Firebase falla, usar localStorage
-            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-            const order = orders.find(o => o.id === orderId);
-            if (order) {
-                order.status = newStatus;
-                localStorage.setItem('abgb_orders', JSON.stringify(orders));
-            }
-            loadOrdersFromLocalStorage();
-        });
-    } else {
-        // Sin Firebase, usar localStorage directamente
-        const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-        const order = orders.find(o => o.id === orderId);
-        if (order) {
-            order.status = newStatus;
-            localStorage.setItem('abgb_orders', JSON.stringify(orders));
-        }
-        loadOrdersFromLocalStorage();
-    }
-}
-
-function removeOrder(orderId) {
-    if (window.firebaseDB) {
-        window.firebaseDB.ref('orders/' + orderId).remove().then(() => {
-            // También remover de localStorage
-            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-            const filtered = orders.filter(o => o.id !== orderId);
-            localStorage.setItem('abgb_orders', JSON.stringify(filtered));
-            loadOrdersFromLocalStorage();
-        }).catch(() => {
-            // Si Firebase falla, usar localStorage
-            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-            const filtered = orders.filter(o => o.id !== orderId);
-            localStorage.setItem('abgb_orders', JSON.stringify(filtered));
-            loadOrdersFromLocalStorage();
-        });
-    } else {
-        // Sin Firebase, usar localStorage directamente
-        const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-        const filtered = orders.filter(o => o.id !== orderId);
-        localStorage.setItem('abgb_orders', JSON.stringify(filtered));
-        loadOrdersFromLocalStorage();
-    }
-}
-
-function renderOrders() {
-    const orders = loadOrders();
-    const grid = document.getElementById('ordersGrid');
-
-    if (orders.length === 0) {
-        grid.innerHTML = '<div class="empty-state">Sin órdenes activas</div>';
-    } else {
-        grid.innerHTML = orders.map(order => `
-            <div class="order-card ${order.status}">
-                <div class="order-header">
-                    <div class="order-info">
-                        <div class="order-id">Mesa #${order.table}</div>
-                        <div class="order-meta">
-                            Orden #${order.id} • ${order.createdAt}
-                        </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABGB - Sistema de Órdenes Chef</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="chef.css">
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">AB</div>
+                    <div>
+                        <h1>Cocina</h1>
+                        <span class="time" id="time">09:30</span>
                     </div>
-                    <div class="order-badge">${order.status.toUpperCase()}</div>
                 </div>
+                <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+            </div>
+        </header>
 
-                <div class="order-body">
-                    ${order.items.map(item => `
-                        <div class="order-item">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-qty">×${item.qty}</div>
-                        </div>
-                        ${item.special && item.special.length > 0 ? `
-                            <div class="item-special">
-                                Especial: ${item.special.join(', ')}
-                                ${item.customNotes ? '<br>' + item.customNotes : ''}
-                            </div>
-                        ` : ''}
-                    `).join('')}
+        <!-- MAIN -->
+        <main class="main">
+            <!-- STATUS BAR -->
+            <div class="status-bar">
+                <div class="status-item nuevo">
+                    <div class="status-count" id="countNuevo">0</div>
+                    <div class="status-label">Nuevas</div>
                 </div>
-
-                <div class="order-footer">
-                    ${order.status === 'nuevo' ? `
-                        <button class="btn-action primary" onclick="updateStatus(${order.id}, 'preparando')">
-                            En Preparación
-                        </button>
-                    ` : ''}
-                    
-                    ${order.status === 'preparando' ? `
-                        <button class="btn-action primary" onclick="updateStatus(${order.id}, 'listo')">
-                            Marcar Listo
-                        </button>
-                    ` : ''}
-                    
-                    ${order.status === 'listo' ? `
-                        <button class="btn-action primary" onclick="updateStatus(${order.id}, 'entregado')">
-                            Entregar
-                        </button>
-                    ` : ''}
-                    
-                    <button class="btn-action danger" onclick="removeOrder(${order.id})">
-                        Eliminar
-                    </button>
+                <div class="status-item preparando">
+                    <div class="status-count" id="countPreparando">0</div>
+                    <div class="status-label">Preparando</div>
+                </div>
+                <div class="status-item listo">
+                    <div class="status-count" id="countListo">0</div>
+                    <div class="status-label">Listas</div>
                 </div>
             </div>
-        `).join('');
-    }
 
-    updateStatusCounts();
-}
+            <!-- ORDERS CONTAINER -->
+            <div class="orders-container">
+                <div class="orders-grid" id="ordersGrid">
+                    <!-- Las órdenes se cargan aquí -->
+                </div>
+            </div>
+        </main>
+    </div>
 
-function updateStatusCounts() {
-    const orders = state.orders;
-    
-    const countNuevo = orders.filter(o => o.status === 'nuevo').length;
-    const countPreparando = orders.filter(o => o.status === 'preparando').length;
-    const countListo = orders.filter(o => o.status === 'listo').length;
-
-    document.getElementById('countNuevo').textContent = countNuevo;
-    document.getElementById('countPreparando').textContent = countPreparando;
-    document.getElementById('countListo').textContent = countListo;
-}
-
-// ==================== INICIALIZACIÓN ====================
-document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que Firebase esté listo (con timeout)
-    let firebaseReady = false;
-    let attempts = 0;
-    
-    const checkFirebase = setInterval(() => {
-        attempts++;
-        if (window.firebaseDB) {
-            clearInterval(checkFirebase);
-            setupFirebaseListener();
-            firebaseReady = true;
-        } else if (attempts > 5) {
-            // Después de 1 segundo, usar localStorage como fallback
-            clearInterval(checkFirebase);
-            console.warn('Firebase no se inicializó, usando localStorage');
-            loadOrdersFromLocalStorage();
-        }
-    }, 200);
-
-    loadOrdersFromLocalStorage();
-    renderOrders();
-    updateTime();
-    setInterval(updateTime, 60000);
-
-    // Cerrar sesión
-    document.getElementById('btnLogout').addEventListener('click', () => {
-        if (confirm('¿Cerrar sesión?')) {
-            localStorage.removeItem('abgb_user_logged_in');
-            localStorage.removeItem('abgb_user_role');
-            window.location.href = 'login.html';
-        }
-    });
-
-    // Sincronización: detectar cambios en localStorage desde otro dispositivo
-    window.addEventListener('storage', () => {
-        loadOrdersFromLocalStorage();
-    });
-
-    // Polling cada 2 segundos para detectar cambios
-    setInterval(() => {
-        loadOrdersFromLocalStorage();
-    }, 2000);
-});
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="firebaseConfig.js"></script>
+    <script src="chef.js"></script>
+</body>
+</html>
