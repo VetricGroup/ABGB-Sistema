@@ -410,29 +410,24 @@ function confirmOrder() {
         createdDate: new Date().toLocaleDateString('es-CR'),
     };
 
-    // Intentar guardar en Firebase, pero usar localStorage como fallback
-    let saved = false;
-
+    // GUARDAR EN FIREBASE SOLAMENTE
     if (window.firebaseDB) {
-        try {
-            window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
-                saved = true;
-                saveOrderLocally(order);
-                completeOrderProcess(order);
-            }).catch((error) => {
-                console.warn('Firebase error, usando localStorage:', error);
-                saveOrderLocally(order);
-                completeOrderProcess(order);
-            });
-        } catch (error) {
-            console.warn('Firebase no disponible, usando localStorage:', error);
-            saveOrderLocally(order);
-            completeOrderProcess(order);
-        }
+        console.log('💾 Guardando orden en Firebase:', order.id);
+        window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
+            console.log('✅ Orden guardada en Firebase');
+            // Limpiar carrito
+            state.cart = {};
+            state.selectedTable = null;
+            updateOrderUI();
+            document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
+            saveState();
+            alert('✅ Orden #' + order.id + ' confirmada');
+        }).catch((error) => {
+            console.error('❌ Error guardando en Firebase:', error);
+            alert('❌ Error: ' + error.message);
+        });
     } else {
-        console.warn('Firebase no inicializado, usando localStorage');
-        saveOrderLocally(order);
-        completeOrderProcess(order);
+        alert('❌ Firebase no disponible');
     }
 }
 
