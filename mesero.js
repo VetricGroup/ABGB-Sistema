@@ -217,7 +217,7 @@ function renderProducts(category = 'all') {
 // ==================== CARRITO ====================
 function addToCart(productId) {
     if (!state.selectedTable) {
-        alert('Selecciona una mesa primero');
+        NotificationManager.warning('Selecciona una mesa primero');
         return;
     }
 
@@ -226,7 +226,7 @@ function addToCart(productId) {
 
     const availability = getAvailableProducts();
     if (availability[productId] === false) {
-        alert('Producto agotado');
+        NotificationManager.warning('Producto agotado');
         return;
     }
 
@@ -421,13 +421,13 @@ function confirmOrder() {
             updateOrderUI();
             document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
             saveState();
-            alert('✅ Orden #' + order.id + ' confirmada');
+            NotificationManager.success('Orden #' + order.id + ' confirmada');
         }).catch((error) => {
             console.error('❌ Error guardando en Firebase:', error);
-            alert('❌ Error: ' + error.message);
+            NotificationManager.error('Error: ' + error.message);
         });
     } else {
-        alert('❌ Firebase no disponible');
+        NotificationManager.error('Firebase no disponible');
     }
 }
 
@@ -454,7 +454,7 @@ function completeOrderProcess(order) {
     saveState();
     broadcastUpdate('NEW_ORDER');
 
-    alert('✅ Orden #' + order.id + ' confirmada');
+    NotificationManager.success('Orden #' + order.id + ' confirmada');
 }
 
 // ==================== EVENT LISTENERS ====================
