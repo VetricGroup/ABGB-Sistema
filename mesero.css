@@ -748,11 +748,306 @@ html, body {
     .container {
         padding: 12px;
         gap: 12px;
+        grid-template-columns: 1fr;
     }
 
     .products-list {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 8px;
+    }
+
+    .header-left h1 {
+        font-size: 14px;
+    }
+
+    .btn-logout {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+
+    .panel-header h2 {
+        font-size: 18px;
+    }
+
+    .filters {
+        gap: 6px;
+    }
+
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+
+    .order-card {
+        padding: 12px;
+    }
+
+    .card-header h3 {
+        font-size: 12px;
+    }
+
+    .order-summary {
+        gap: 4px;
+    }
+
+    .summary-row {
+        font-size: 10px;
+    }
+
+    .btn-confirm, .btn-cancel {
+        padding: 10px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .header {
+        padding: 12px 16px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .header-left {
+        gap: 12px;
+    }
+
+    .logo {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .header-left h1 {
+        font-size: 12px;
+        margin-bottom: 0;
+    }
+
+    .time {
+        font-size: 10px;
+    }
+
+    .btn-logout {
+        width: 100%;
+        padding: 8px;
+        font-size: 10px;
+    }
+
+    .main {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .menu-panel {
+        gap: 8px;
+    }
+
+    .panel-header h2 {
+        font-size: 16px;
+    }
+
+    .search-box input {
+        padding: 10px 12px 10px 36px;
+        font-size: 12px;
+    }
+
+    .filters {
+        gap: 4px;
+        overflow-x: auto;
+    }
+
+    .filter-btn {
+        padding: 6px 10px;
+        font-size: 9px;
+        flex-shrink: 0;
+    }
+
+    .products-list {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 6px;
+    }
+
+    .product-card {
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .product-name {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .product-desc {
+        font-size: 9px;
+        display: none;
+    }
+
+    .product-footer {
+        gap: 4px;
+    }
+
+    .product-price {
+        font-size: 11px;
+    }
+
+    .btn-add {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .order-panel {
+        max-height: none;
+        gap: 8px;
+    }
+
+    .card {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .card h3 {
+        font-size: 11px;
+    }
+
+    .table-badge {
+        padding: 3px 8px;
+        font-size: 9px;
+    }
+
+    .tables-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .table-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .order-items {
+        max-height: 200px;
+    }
+
+    .order-item {
+        padding: 8px;
+        font-size: 10px;
+        gap: 6px;
+    }
+
+    .item-name {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .item-price {
+        font-size: 9px;
+    }
+
+    .item-special {
+        font-size: 8px;
+        margin-top: 2px;
+        padding-top: 2px;
+    }
+
+    .qty-control {
+        gap: 3px;
+    }
+
+    .qty-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .qty-display {
+        min-width: 14px;
+        font-size: 9px;
+    }
+
+    .btn-notes {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
+    .btn-remove {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .order-summary {
+        border-top: 1px solid var(--border);
+        padding-top: 6px;
+        gap: 4px;
+    }
+
+    .summary-row {
+        font-size: 9px;
+    }
+
+    .summary-row.total {
+        font-size: 11px;
+        padding-top: 4px;
+    }
+
+    .btn-confirm, .btn-cancel {
+        width: 100%;
+        padding: 10px;
+        font-size: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 16px 12px;
+    }
+
+    .modal-header h2 {
+        font-size: 13px;
+    }
+
+    .modal-body {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .product-name {
+        font-size: 11px;
+    }
+
+    .instruction-item {
+        padding: 6px;
+        font-size: 11px;
+    }
+
+    .instruction-check {
+        width: 14px;
+        height: 14px;
+    }
+
+    .custom-instructions {
+        padding: 8px;
+        font-size: 10px;
+        min-height: 50px;
+    }
+
+    .modal-footer {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+
+    .btn-secondary, .btn-primary {
+        padding: 8px;
+        font-size: 10px;
     }
 }
 
