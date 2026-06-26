@@ -1,9 +1,17 @@
 // ==================== CONFIGURACIÓN FIREBASE ====================
 
-// Esperar a que Firebase esté disponible globalmente
+// Esperar a que Firebase esté completamente disponible
 function initFirebase() {
+    // Verificar si firebase está disponible
     if (typeof firebase === 'undefined') {
-        console.error('Firebase SDK no está cargado');
+        console.warn('Firebase SDK aún no está cargado, reintentando...');
+        setTimeout(initFirebase, 500);
+        return;
+    }
+
+    // Verificar si ya fue inicializado
+    if (window.firebaseApp) {
+        console.log('✅ Firebase ya está inicializado');
         return;
     }
 
@@ -14,8 +22,7 @@ function initFirebase() {
         projectId: "abgb-sistema",
         storageBucket: "abgb-sistema.firebasestorage.app",
         messagingSenderId: "391706802475",
-        appId: "1:391706802475:web:b0ab5fc5750edda3582d6e",
-        measurementId: "G-7CBQ88KWB9"
+        appId: "1:391706802475:web:b0ab5fc5750edda3582d6e"
     };
 
     try {
@@ -26,14 +33,22 @@ function initFirebase() {
         window.firebaseDB = database;
         
         console.log('✅ Firebase inicializado correctamente');
+        window.dispatchEvent(new Event('firebaseReady'));
     } catch (error) {
-        console.error('❌ Error inicializando Firebase:', error);
+        console.error('❌ Error inicializando Firebase:', error.message);
+        // Reintenta después de 1 segundo
+        setTimeout(initFirebase, 1000);
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicializar cuando esté listo
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFirebase);
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initFirebase, 100);
+    });
 } else {
-    initFirebase();
+    setTimeout(initFirebase, 100);
 }
+
+// También intenta inicializar inmediatamente
+setTimeout(initFirebase, 100);
