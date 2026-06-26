@@ -410,36 +410,56 @@ function confirmOrder() {
         createdDate: new Date().toLocaleDateString('es-CR'),
     };
 
-    // Guardar en Firebase
+    // Intentar guardar en Firebase, pero usar localStorage como fallback
+    let saved = false;
+
     if (window.firebaseDB) {
-        window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
-            // Guardar también en localStorage como backup
-            const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
-            orders.unshift(order);
-            localStorage.setItem('abgb_orders', JSON.stringify(orders));
-
-            // Guardar en historial
-            const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
-            history.push(order);
-            localStorage.setItem('abgb_history', JSON.stringify(history));
-
-            // Limpiar carrito
-            state.cart = {};
-            state.selectedTable = null;
-            
-            updateOrderUI();
-            document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
-            
-            saveState();
-            broadcastUpdate('NEW_ORDER');
-
-            alert('Orden #' + order.id + ' confirmada');
-        }).catch((error) => {
-            alert('Error al guardar orden: ' + error.message);
-        });
+        try {
+            window.firebaseDB.ref('orders/' + order.id).set(order).then(() => {
+                saved = true;
+                saveOrderLocally(order);
+                completeOrderProcess(order);
+            }).catch((error) => {
+                console.warn('Firebase error, usando localStorage:', error);
+                saveOrderLocally(order);
+                completeOrderProcess(order);
+            });
+        } catch (error) {
+            console.warn('Firebase no disponible, usando localStorage:', error);
+            saveOrderLocally(order);
+            completeOrderProcess(order);
+        }
     } else {
-        alert('Firebase no está disponible. Verifica la conexión.');
+        console.warn('Firebase no inicializado, usando localStorage');
+        saveOrderLocally(order);
+        completeOrderProcess(order);
     }
+}
+
+function saveOrderLocally(order) {
+    // Guardar en localStorage
+    const orders = JSON.parse(localStorage.getItem('abgb_orders') || '[]');
+    orders.unshift(order);
+    localStorage.setItem('abgb_orders', JSON.stringify(orders));
+
+    // Guardar en historial
+    const history = JSON.parse(localStorage.getItem('abgb_history') || '[]');
+    history.push(order);
+    localStorage.setItem('abgb_history', JSON.stringify(history));
+}
+
+function completeOrderProcess(order) {
+    // Limpiar carrito
+    state.cart = {};
+    state.selectedTable = null;
+    
+    updateOrderUI();
+    document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('active'));
+    
+    saveState();
+    broadcastUpdate('NEW_ORDER');
+
+    alert('✅ Orden #' + order.id + ' confirmada');
 }
 
 // ==================== EVENT LISTENERS ====================
