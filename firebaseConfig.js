@@ -1,31 +1,29 @@
-// ==================== CONFIGURACIÓN FIREBASE - VERSIÓN ULTRA-ROBUSTA ====================
+// ==================== CONFIGURACIÓN FIREBASE - CON AUTO-RECONEXIÓN ====================
 
 console.log('📦 Cargando firebaseConfig.js...');
 
-// Verificar si Firebase SDK está cargado
 let firebaseLoadAttempts = 0;
-const maxAttempts = 20;
+const maxAttempts = 30;
+let reconnectAttempts = 0;
 
 function checkAndInitFirebase() {
     firebaseLoadAttempts++;
     
     console.log(`🔍 Intento ${firebaseLoadAttempts}/${maxAttempts}: ¿Firebase disponible?`);
     
-    // Verificar firebase global
     if (typeof firebase === 'undefined') {
         console.warn(`⏳ Firebase SDK aún no cargado (${firebaseLoadAttempts}/${maxAttempts})`);
         if (firebaseLoadAttempts < maxAttempts) {
             setTimeout(checkAndInitFirebase, 200);
         } else {
-            console.error('❌ FALLO: Firebase SDK no se cargó después de 20 intentos');
+            console.error('❌ FALLO: Firebase SDK no se cargó');
             window.firebaseConnected = false;
         }
         return;
     }
     
-    // Firebase está disponible, intentar inicializar
     if (window.firebaseApp) {
-        console.log('✅ Firebase ya inicializado previamente');
+        console.log('✅ Firebase ya inicializado');
         return;
     }
 
@@ -40,58 +38,68 @@ function checkAndInitFirebase() {
     };
 
     try {
-        console.log('🔌 Inicializando Firebase con config...');
+        console.log('🔌 Inicializando Firebase...');
         const app = firebase.initializeApp(firebaseConfig);
-        console.log('✅ Firebase app inicializado');
-        
         const database = firebase.database();
-        console.log('✅ Database reference obtenida');
         
-        // Guardar referencias globales
         window.firebaseApp = app;
         window.firebaseDB = database;
         
-        // Verificar conexión en tiempo real
-        console.log('🔗 Verificando conexión en tiempo real...');
+        // Monitorear conexión en tiempo real
+        console.log('🔗 Monitoreando conexión...');
         database.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
-                console.log('✅✅✅ CONECTADO A FIREBASE EN TIEMPO REAL! ✅✅✅');
+                console.log('✅✅✅ CONECTADO A FIREBASE EN TIEMPO REAL ✅✅✅');
                 window.firebaseConnected = true;
+                reconnectAttempts = 0;
                 window.dispatchEvent(new Event('firebaseReady'));
             } else {
-                console.warn('⚠️ Firebase desconectado');
+                console.warn('⚠️ Firebase DESCONECTADO - Intentando reconectar...');
                 window.firebaseConnected = false;
+                attemptReconnect();
             }
         });
         
-        console.log('✅ Firebase completamente listo!');
+        console.log('✅ Firebase listo!');
         
     } catch (error) {
-        console.error('❌ Error al inicializar Firebase:', error.message);
-        console.error('Stack:', error.stack);
+        console.error('❌ Error Firebase:', error.message);
         window.firebaseConnected = false;
         
-        // Reintentar
         if (firebaseLoadAttempts < maxAttempts) {
-            console.log('🔄 Reintentando en 300ms...');
             setTimeout(checkAndInitFirebase, 300);
         }
     }
 }
 
-// Esperar a que el DOM esté listo
+// Reconexión automática
+function attemptReconnect() {
+    reconnectAttempts++;
+    const delay = Math.min(1000 * reconnectAttempts, 10000); // Max 10 segundos
+    
+    console.log(`🔄 Reconectando en ${delay}ms (intento ${reconnectAttempts})...`);
+    
+    setTimeout(() => {
+        if (window.firebaseDB) {
+            console.log('🔗 Verificando conexión nuevamente...');
+            window.firebaseDB.ref('.info/connected').once('value', (snap) => {
+                if (snap.val() !== true) {
+                    attemptReconnect();
+                }
+            });
+        }
+    }, delay);
+}
+
+// Inicializar
 if (document.readyState === 'loading') {
-    console.log('⏳ Esperando DOMContentLoaded...');
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ DOMContentLoaded disparado');
         setTimeout(checkAndInitFirebase, 100);
     });
 } else {
-    console.log('✅ DOM ya cargado');
     setTimeout(checkAndInitFirebase, 100);
 }
 
-// También intentar inmediatamente
 setTimeout(checkAndInitFirebase, 50);
 
 console.log('📦 firebaseConfig.js cargado');
