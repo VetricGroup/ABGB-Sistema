@@ -1,11 +1,10 @@
 // ==================== CONFIGURACIÓN FIREBASE ====================
 
-// Esperar a que Firebase esté completamente disponible
 function initFirebase() {
     // Verificar si firebase está disponible
     if (typeof firebase === 'undefined') {
-        console.warn('Firebase SDK aún no está cargado, reintentando...');
-        setTimeout(initFirebase, 500);
+        console.warn('⏳ Firebase SDK aún no está cargado, reintentando...');
+        setTimeout(initFirebase, 300);
         return;
     }
 
@@ -26,29 +25,44 @@ function initFirebase() {
     };
 
     try {
+        console.log('🔌 Intentando conectar a Firebase...');
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
+        // Probar conexión
+        database.ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === true) {
+                console.log('✅ CONECTADO A FIREBASE!');
+                window.firebaseApp = app;
+                window.firebaseDB = database;
+                window.firebaseConnected = true;
+                window.dispatchEvent(new Event('firebaseReady'));
+            } else {
+                console.warn('❌ Firebase desconectado');
+                window.firebaseConnected = false;
+            }
+        });
+        
         window.firebaseApp = app;
         window.firebaseDB = database;
+        console.log('✅ Firebase SDK inicializado');
         
-        console.log('✅ Firebase inicializado correctamente');
-        window.dispatchEvent(new Event('firebaseReady'));
     } catch (error) {
         console.error('❌ Error inicializando Firebase:', error.message);
-        // Reintenta después de 1 segundo
-        setTimeout(initFirebase, 1000);
+        console.error('Detalles:', error);
+        // Reintenta después de 500ms
+        setTimeout(initFirebase, 500);
     }
 }
 
 // Inicializar cuando esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initFirebase, 100);
+        setTimeout(initFirebase, 50);
     });
 } else {
-    setTimeout(initFirebase, 100);
+    setTimeout(initFirebase, 50);
 }
 
 // También intenta inicializar inmediatamente
-setTimeout(initFirebase, 100);
+setTimeout(initFirebase, 50);

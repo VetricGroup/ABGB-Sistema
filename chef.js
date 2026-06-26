@@ -5,7 +5,8 @@ let state = {
 
 // ==================== FIREBASE LISTENER ====================
 function setupFirebaseListener() {
-    if (!window.firebaseDB) {
+    if (!window.firebaseDB || !window.firebaseConnected) {
+        updateDebugPanel('Firebase: ❌ DID NOT CONNECT', 'localStorage (THIS DEVICE ONLY)', 0);
         console.warn('Firebase no está disponible, usando localStorage');
         // Usar localStorage como fallback
         loadOrdersFromLocalStorage();
@@ -13,6 +14,8 @@ function setupFirebaseListener() {
         setInterval(loadOrdersFromLocalStorage, 2000);
         return;
     }
+
+    updateDebugPanel('Firebase: ✅ CONNECTED', 'Firebase (Real-time)', 0);
 
     try {
         // Escuchar cambios en ordenes en tiempo real
@@ -31,13 +34,26 @@ function setupFirebaseListener() {
             // Ordenar por fecha descendente
             orders.sort((a, b) => b.id - a.id);
             state.orders = orders;
+            updateDebugPanel('Firebase: ✅ CONNECTED', 'Firebase (Real-time)', orders.length);
             renderOrders();
         });
     } catch (error) {
+        updateDebugPanel('Firebase: ❌ ERROR', 'localStorage (FALLBACK)', 0);
         console.warn('Error con Firebase listener, usando localStorage:', error);
         loadOrdersFromLocalStorage();
         setInterval(loadOrdersFromLocalStorage, 2000);
     }
+}
+
+// ==================== ACTUALIZAR PANEL DEBUG ====================
+function updateDebugPanel(firebaseStatus, mode, orderCount) {
+    const debugFirebase = document.getElementById('debugFirebase');
+    const debugOrders = document.getElementById('debugOrders');
+    const debugMode = document.getElementById('debugMode');
+    
+    if (debugFirebase) debugFirebase.textContent = firebaseStatus;
+    if (debugOrders) debugOrders.textContent = `Órdenes: ${orderCount}`;
+    if (debugMode) debugMode.textContent = `Modo: ${mode}`;
 }
 
 // ==================== CARGAR DE LOCALSTORAGE ====================
@@ -200,16 +216,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let firebaseReady = false;
     let attempts = 0;
     
+    console.log('🔧 Iniciando Chef...');
+    updateDebugPanel('Firebase: ⏳ Conectando...', 'Esperando...', 0);
+    
     const checkFirebase = setInterval(() => {
         attempts++;
+        console.log(`⏳ Intento ${attempts}: ¿Firebase disponible?`, window.firebaseDB ? '✅ SÍ' : '❌ NO');
+        
         if (window.firebaseDB) {
             clearInterval(checkFirebase);
+            console.log('✅ Firebase CONECTADO - Iniciando listener en tiempo real');
+            updateDebugPanel('Firebase: ✅ CONECTADO', 'Firebase (Tiempo Real)', 0);
             setupFirebaseListener();
             firebaseReady = true;
         } else if (attempts > 5) {
             // Después de 1 segundo, usar localStorage como fallback
             clearInterval(checkFirebase);
-            console.warn('Firebase no se inicializó, usando localStorage');
+            console.warn('❌ Firebase NO se inicializó después de 5 intentos - Usando localStorage (SOLO DISPOSITIVO LOCAL)');
+            updateDebugPanel('Firebase: ❌ NO CONECTÓ', 'localStorage (SOLO ESTE DISPOSITIVO)', 0);
             loadOrdersFromLocalStorage();
         }
     }, 200);
